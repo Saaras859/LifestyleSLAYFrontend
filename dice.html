@@ -1,0 +1,184 @@
+---
+permalink: /blackjack/
+layout: base
+title: dicestats
+search_exclude: true
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Game</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin-top: 50px; 
+            background-color: #f4f4f9; 
+            color: #333;
+        }
+        button { 
+            padding: 10px 20px; 
+            margin: 10px; 
+            font-size: 16px; 
+            border: none; 
+            border-radius: 5px; 
+            background-color: #5cb85c; 
+            color: white; 
+            cursor: pointer; 
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        button:active {
+            background-color: grey;
+        }
+        button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+        .dice { 
+            font-size: 48px; 
+            margin: 20px; 
+            display: inline-block; 
+            padding: 20px; 
+            background-color: white; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .dice-container {
+            margin: 20px;
+        }
+        #result {
+            font-size: 24px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .roll-animation {
+            animation: roll 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dice Game</h1>
+    <div class="container">
+        <div>
+            <button onclick="startGame()" id="startButton">Roll Dice</button>
+            <button onclick="rerollUserDice()" id="rerollButton" disabled>Reroll Your Dice</button>
+            <button onclick="revealDice()" id="revealButton" disabled>Reveal Dice</button>
+            <button onclick="resetGame()" id="resetButton" style="display:none;">Reset Game</button>
+        </div>
+        <div class="dice-container">
+            <p>User's Dice: <span id="userDice" class="dice"></span></p>
+            <p>Robot's Dice: <span id="robotDice1" class="dice"></span> <span id="robotDice2" class="dice">?</span></p>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let userDice = [];
+        let robotDice = [];
+        const diceUnicode = ['\u2680', '\u2681', '\u2682', '\u2683', '\u2684', '\u2685'];
+        
+        function rollDie() {
+            return Math.floor(Math.random() * 6) + 1;
+        }
+
+        function displayDice(diceArray) {
+            return diceArray.map(die => diceUnicode[die - 1]).join(' ');
+        }
+
+        function animateDice(elementId) {
+            const element = document.getElementById(elementId);
+            element.classList.remove('roll-animation');
+            void element.offsetWidth;  // Trigger reflow to restart animation
+            element.classList.add('roll-animation');
+        }
+
+        function startGame() {
+            userDice = [rollDie(), rollDie()];
+            robotDice = [rollDie(), rollDie()];
+
+            animateDice('userDice');
+            animateDice('robotDice1');
+            
+            setTimeout(() => {
+                document.getElementById('userDice').innerText = displayDice(userDice);
+                document.getElementById('robotDice1').innerText = diceUnicode[robotDice[0] - 1];
+                document.getElementById('robotDice2').innerText = '?';
+                document.getElementById('rerollButton').disabled = false;
+                document.getElementById('revealButton').disabled = false;
+                document.getElementById('result').innerText = '';
+                document.getElementById('startButton').disabled = true;
+                document.getElementById('startButton').style.backgroundColor = '#ddd';
+                document.getElementById('revealButton').style.backgroundColor = '#5cb85c';
+                document.getElementById('rerollButton').style.backgroundColor = '#5cb85c';
+            }, 500);
+        }
+
+        function rerollUserDice() {
+            userDice = [rollDie(), rollDie()];
+
+            animateDice('userDice');
+
+            setTimeout(() => {
+                document.getElementById('userDice').innerText = displayDice(userDice);
+                document.getElementById('rerollButton').disabled = true;
+                document.getElementById('rerollButton').style.backgroundColor = '#ddd';
+            }, 500);
+        }
+
+        function revealDice() {
+            const userTotal = userDice[0] + userDice[1];
+            const robotTotal = robotDice[0] + robotDice[1];
+            let resultMessage;
+
+            if (userTotal > robotTotal) {
+                resultMessage = `You win! (${userTotal} vs ${robotTotal})`;
+            } else if (userTotal < robotTotal) {
+                resultMessage = `Robot wins! (${robotTotal} vs ${userTotal})`;
+            } else {
+                resultMessage = `It's a tie! (${userTotal} vs ${robotTotal})`;
+            }
+
+            animateDice('robotDice2');
+
+            setTimeout(() => {
+                document.getElementById('robotDice2').innerText = diceUnicode[robotDice[1] - 1];
+                document.getElementById('result').innerText = resultMessage;
+                document.getElementById('rerollButton').disabled = true;
+                document.getElementById('revealButton').disabled = true;
+                document.getElementById('revealButton').style.backgroundColor = '#ddd';
+                document.getElementById('resetButton').style.display = 'inline-block';
+            }, 500);
+        }
+
+        function resetGame() {
+            document.getElementById('userDice').innerText = '';
+            document.getElementById('robotDice1').innerText = '';
+            document.getElementById('robotDice2').innerText = '?';
+            document.getElementById('result').innerText = '';
+            document.getElementById('startButton').disabled = false;
+            document.getElementById('startButton').innerText = 'Roll Dice';
+            document.getElementById('rerollButton').disabled = true;
+            document.getElementById('rerollButton').style.backgroundColor = '#ddd';
+            document.getElementById('revealButton').disabled = true;
+            document.getElementById('revealButton').style.backgroundColor = '#ddd';
+            document.getElementById('startButton').style.backgroundColor = '#5cb85c';
+            document.getElementById('resetButton').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
