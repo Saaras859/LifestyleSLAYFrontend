@@ -11,26 +11,26 @@ search_exclude: true
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dice Game</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            margin-top: 50px; 
-            background-color: #f4f4f9; 
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background-color: #F4F4F9;
             color: #333;
         }
-        button { 
-            padding: 10px 20px; 
-            margin: 10px; 
-            font-size: 16px; 
-            border: none; 
-            border-radius: 5px; 
-            background-color: #5cb85c; 
-            color: white; 
-            cursor: pointer; 
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #5CB85C;
+            color: white;
+            cursor: pointer;
             transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #4cae4c;
+            background-color: #4CAE4C;
         }
         button:active {
             background-color: grey;
@@ -39,14 +39,14 @@ search_exclude: true
             background-color: #ddd;
             cursor: not-allowed;
         }
-        .dice { 
-            font-size: 48px; 
-            margin: 20px; 
-            display: inline-block; 
-            padding: 20px; 
-            background-color: white; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+        .dice {
+            font-size: 48px;
+            margin: 20px;
+            display: inline-block;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .container {
             display: flex;
@@ -86,34 +86,32 @@ search_exclude: true
         </div>
         <div id="result"></div>
     </div>
-
     <script>
         let userDice = [];
         let robotDice = [];
+        let game_record = []
+        let cur_game = [0,[0,0],[0,0],[0,0]]
         const diceUnicode = ['\u2680', '\u2681', '\u2682', '\u2683', '\u2684', '\u2685'];
-        
         function rollDie() {
             return Math.floor(Math.random() * 6) + 1;
         }
-
         function displayDice(diceArray) {
             return diceArray.map(die => diceUnicode[die - 1]).join(' ');
         }
-
         function animateDice(elementId) {
             const element = document.getElementById(elementId);
             element.classList.remove('roll-animation');
             void element.offsetWidth;  // Trigger reflow to restart animation
             element.classList.add('roll-animation');
         }
-
         function startGame() {
             userDice = [rollDie(), rollDie()];
             robotDice = [rollDie(), rollDie()];
-
+            cur_game[1] = userDice
+            //console.log(cur_game)
             animateDice('userDice');
             animateDice('robotDice1');
-            
+            cur_game[3] = robotDice
             setTimeout(() => {
                 document.getElementById('userDice').innerText = displayDice(userDice);
                 document.getElementById('robotDice1').innerText = diceUnicode[robotDice[0] - 1];
@@ -123,38 +121,36 @@ search_exclude: true
                 document.getElementById('result').innerText = '';
                 document.getElementById('startButton').disabled = true;
                 document.getElementById('startButton').style.backgroundColor = '#ddd';
-                document.getElementById('revealButton').style.backgroundColor = '#5cb85c';
-                document.getElementById('rerollButton').style.backgroundColor = '#5cb85c';
+                document.getElementById('revealButton').style.backgroundColor = '#5CB85C';
+                document.getElementById('rerollButton').style.backgroundColor = '#5CB85C';
             }, 500);
         }
-
         function rerollUserDice() {
             userDice = [rollDie(), rollDie()];
-
+            cur_game[2] = userDice
+            //console.log(cur_game)
             animateDice('userDice');
-
             setTimeout(() => {
                 document.getElementById('userDice').innerText = displayDice(userDice);
                 document.getElementById('rerollButton').disabled = true;
                 document.getElementById('rerollButton').style.backgroundColor = '#ddd';
             }, 500);
         }
-
         function revealDice() {
             const userTotal = userDice[0] + userDice[1];
             const robotTotal = robotDice[0] + robotDice[1];
             let resultMessage;
-
             if (userTotal > robotTotal) {
                 resultMessage = `You win! (${userTotal} vs ${robotTotal})`;
+                cur_game[0] = 1
             } else if (userTotal < robotTotal) {
                 resultMessage = `Robot wins! (${robotTotal} vs ${userTotal})`;
+                cur_game[0] = -1
             } else {
                 resultMessage = `It's a tie! (${userTotal} vs ${robotTotal})`;
+                cur_game[0] = 0
             }
-
             animateDice('robotDice2');
-
             setTimeout(() => {
                 document.getElementById('robotDice2').innerText = diceUnicode[robotDice[1] - 1];
                 document.getElementById('result').innerText = resultMessage;
@@ -164,7 +160,6 @@ search_exclude: true
                 document.getElementById('resetButton').style.display = 'inline-block';
             }, 500);
         }
-
         function resetGame() {
             document.getElementById('userDice').innerText = '';
             document.getElementById('robotDice1').innerText = '';
@@ -176,9 +171,37 @@ search_exclude: true
             document.getElementById('rerollButton').style.backgroundColor = '#ddd';
             document.getElementById('revealButton').disabled = true;
             document.getElementById('revealButton').style.backgroundColor = '#ddd';
-            document.getElementById('startButton').style.backgroundColor = '#5cb85c';
+            document.getElementById('startButton').style.backgroundColor = '#5CB85C';
             document.getElementById('resetButton').style.display = 'none';
+            game_record.push(cur_game)
+            console.log(game_record)
+            cur_game = [0,[0,0],[0,0],[0,0]]
         }
+        function quicksort(arr) {
+            if (arr.length <= 1) {
+                return arr;
+            } else {
+                const pivot = arr[Math.floor(arr.length / 2)];
+                const left = [];
+                const middle = [];
+                const right = [];
+                for (const element of arr) {
+                    if (element < pivot) {
+                        left.push(element);
+                    } else if (element === pivot) {
+                        middle.push(element);
+                    } else {
+                        right.push(element);
+                    }
+                }
+                return quicksort(left).concat(middle.concat(quicksort(right)));
+            }
+        }
+        // Example usage
+        const arr = [3, 1, 12, 21, 2111, 6, 8, 10, 1, 2, 1];
+        console.log("Original array:", arr);
+        const sortedArr = quicksort(arr);
+        console.log("Sorted array:", sortedArr);
     </script>
 </body>
 </html>
