@@ -79,6 +79,7 @@ search_exclude: true
             <button onclick="rerollUserDice()" id="rerollButton" disabled>Reroll Your Dice</button>
             <button onclick="revealDice()" id="revealButton" disabled>Reveal Dice</button>
             <button onclick="resetGame()" id="resetButton" style="display:none;">Reset Game</button>
+            <button onclick="showGameRecord()">Show Game Record</button>
         </div>
         <div class="dice-container">
             <p>User's Dice: <span id="userDice" class="dice"></span></p>
@@ -108,7 +109,6 @@ search_exclude: true
             userDice = [rollDie(), rollDie()];
             robotDice = [rollDie(), rollDie()];
             cur_game[1] = userDice
-            //console.log(cur_game)
             animateDice('userDice');
             animateDice('robotDice1');
             cur_game[3] = robotDice
@@ -128,7 +128,6 @@ search_exclude: true
         function rerollUserDice() {
             userDice = [rollDie(), rollDie()];
             cur_game[2] = userDice
-            //console.log(cur_game)
             animateDice('userDice');
             setTimeout(() => {
                 document.getElementById('userDice').innerText = displayDice(userDice);
@@ -177,6 +176,39 @@ search_exclude: true
             console.log(game_record)
             cur_game = [0,[0,0],[0,0],[0,0]]
         }
+        function showGameRecord() {
+            // Clear the console
+            console.clear();
+        
+            // Calculate total user wins, losses, and ties
+            const totalUserWins = game_record.reduce((totalWins, game) => totalWins + (game[0] === 1 ? 1 : 0), 0);
+            const totalUserLosses = game_record.reduce((totalLosses, game) => totalLosses + (game[0] === -1 ? 1 : 0), 0);
+            const totalTies = game_record.reduce((totalTies, game) => totalTies + (game[0] === 0 ? 1 : 0), 0);
+        
+            // Calculate total sum of user's dice rolls
+            const totalUserSum = game_record.reduce((total, game) => {
+                // Check if user rerolled, use the rerolled sum if available
+                const userSum = game[2][0] + game[2][1] !== 0 ? game[2][0] + game[2][1] : game[1][0] + game[1][1];
+                return total + userSum;
+            }, 0);
+        
+            // Calculate total sum of robot's dice rolls
+            const totalRobotSum = game_record.reduce((total, game) => total + (game[3][0] + game[3][1]), 0);
+        
+            // Calculate average common sum of user's dice rolls
+            const averageUserSum = totalUserSum / game_record.length;
+        
+            // Calculate average common sum of robot's dice rolls
+            const averageRobotSum = totalRobotSum / game_record.length;
+        
+            // Display the total number of wins, losses, ties, and average common sums
+            console.log("Total user wins:", totalUserWins);
+            console.log("Total user losses:", totalUserLosses);
+            console.log("Total ties:", totalTies);
+            console.log("Average common sum of user's dice rolls:", averageUserSum);
+            console.log("Average common sum of robot's dice rolls:", averageRobotSum);
+        }
+        
         function quicksort(arr) {
             if (arr.length <= 1) {
                 return arr;
