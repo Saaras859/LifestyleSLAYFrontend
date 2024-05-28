@@ -73,7 +73,7 @@
             <button onclick="rerollUserDice()" id="rerollButton" disabled>Reroll Your Dice</button>
             <button onclick="revealDice()" id="revealButton" disabled>Reveal Dice</button>
             <button onclick="resetGame()" id="resetButton" style="display:none;">Reset Game</button>
-            <button onclick="showGameRecord()">Show Game Record</button>
+            <button onclick="showGameRecord()">Stats</button>
         </div>
         <div class="dice-container">
             <p>User's Dice: <span id="userDice" class="dice"></span></p>
@@ -170,62 +170,95 @@
             console.log(game_record)
             cur_game = [0,[0,0],[0,0],[0,0]]
         }
-        function showGameRecord() {
-            // Clear the console
-            console.clear();
+        function displayGameRecordOnPage() {
+            // Remove previous game record if exists
+            const existingRecordContainer = document.querySelector('.record-container');
+            if (existingRecordContainer) {
+                existingRecordContainer.remove();
+            }
         
-            // Calculate total user wins, losses, and ties
+            // Create a new container for the game record
+            const recordContainer = document.createElement('div');
+            recordContainer.classList.add('record-container');
+        
+            // Create a heading for the game record
+            const recordHeading = document.createElement('h2');
+            recordHeading.textContent = 'Game Record';
+            recordContainer.appendChild(recordHeading);
+        
+            // Create a list for the game record items
+            const recordList = document.createElement('ul');
+            recordList.style.listStyleType = 'none'; // Remove bullet points
+        
+            // Add game record items
             const totalUserWins = game_record.reduce((totalWins, game) => totalWins + (game[0] === 1 ? 1 : 0), 0);
             const totalUserLosses = game_record.reduce((totalLosses, game) => totalLosses + (game[0] === -1 ? 1 : 0), 0);
             const totalTies = game_record.reduce((totalTies, game) => totalTies + (game[0] === 0 ? 1 : 0), 0);
         
-            // Calculate total sum of user's dice rolls
-            const totalUserSum = game_record.reduce((total, game) => {
-                // Check if user rerolled, use the rerolled sum if available
-                const userSum = game[2][0] + game[2][1] !== 0 ? game[2][0] + game[2][1] : game[1][0] + game[1][1];
-                return total + userSum;
-            }, 0);
+            const recordItems = [
+                `Total user wins: ${totalUserWins}`,
+                `Total user losses: ${totalUserLosses}`,
+                `Total ties: ${totalTies}`
+            ];
         
-            // Calculate total sum of robot's dice rolls
-            const totalRobotSum = game_record.reduce((total, game) => total + (game[3][0] + game[3][1]), 0);
+            // Add highest and lowest numbers for user and robot
+            const highestUserNumber = Math.max(...game_record.map(game => Math.max(...game[1])));
+            const lowestUserNumber = Math.min(...game_record.map(game => Math.min(...game[1])));
+            const highestRobotNumber = Math.max(...game_record.map(game => Math.max(...game[3])));
+            const lowestRobotNumber = Math.min(...game_record.map(game => Math.min(...game[3])));
         
-            // Calculate average common sum of user's dice rolls
-            const averageUserSum = totalUserSum / game_record.length;
+            recordItems.push(`Highest number for user: ${highestUserNumber}`);
+            recordItems.push(`Lowest number for user: ${lowestUserNumber}`);
+            recordItems.push(`Highest number for robot: ${highestRobotNumber}`);
+            recordItems.push(`Lowest number for robot: ${lowestRobotNumber}`);
         
-            // Calculate average common sum of robot's dice rolls
-            const averageRobotSum = totalRobotSum / game_record.length;
+            recordItems.forEach(itemText => {
+                const listItem = document.createElement('li');
+                listItem.textContent = itemText;
+                recordList.appendChild(listItem);
+            });
         
-            // Determine highest and lowest numbers for user and robot
-            let userNumbers = [];
-            let robotNumbers = [];
-            for (let i = 0; i < game_record.length; i++) {
-                // User's numbers
-                userNumbers.push(game_record[i][1][0], game_record[i][1][1]);
-                if (game_record[i][2][0] !== 0 || game_record[i][2][1] !== 0) {
-                    userNumbers.push(game_record[i][2][0], game_record[i][2][1]);
-                }
+            recordContainer.appendChild(recordList);
         
-                // Robot's numbers
-                robotNumbers.push(game_record[i][3][0], game_record[i][3][1]);
-            }
-            userNumbers = quicksort(userNumbers);
-            robotNumbers = quicksort(robotNumbers);
-            const highestUserNumber = Math.max(...userNumbers);
-            const lowestUserNumber = Math.min(...userNumbers);
-            const highestRobotNumber = Math.max(...robotNumbers);
-            const lowestRobotNumber = Math.min(...robotNumbers);
-            // Display the total number of wins, losses, ties, and average common sums
-            console.log("Total user wins:", totalUserWins);
-            console.log("Total user losses:", totalUserLosses);
-            console.log("Total ties:", totalTies);
-            console.log("Average common sum of user's dice rolls:", averageUserSum);
-            console.log("Average common sum of robot's dice rolls:", averageRobotSum);
-            console.log("Highest number for user:", highestUserNumber);
-            console.log("Lowest number for user:", lowestUserNumber);
-            console.log("Highest number for robot:", highestRobotNumber);
-            console.log("Lowest number for robot:", lowestRobotNumber);
+            // Append the game record container to the body
+            document.body.appendChild(recordContainer);
+        
+            // Add a button to toggle the game record visibility
+            const toggleButton = document.createElement('button');
+            toggleButton.textContent = 'Hide Game Record';
+            toggleButton.onclick = toggleGameRecordVisibility;
+            recordContainer.appendChild(toggleButton);
         }
-
+        
+        function toggleGameRecordVisibility() {
+            const recordContainer = document.querySelector('.record-container');
+            const toggleButton = recordContainer.querySelector('button');
+        
+            if (recordContainer.style.display === 'none') {
+                recordContainer.style.display = 'block';
+                toggleButton.textContent = 'Hide Game Record';
+            } else {
+                recordContainer.style.display = 'none';
+                toggleButton.textContent = 'Show Game Record';
+            }
+        }
+        
+        function showGameRecord() {
+            // Display the game record on the webpage
+            displayGameRecordOnPage();
+        
+            // Log the game record in the console
+            console.log("Game Record:", game_record);
+        }
+        
+        function showGameRecord() {
+            // Display the game record on the webpage
+            displayGameRecordOnPage();
+        
+            // Log the game record in the console
+            console.log("Game Record:", game_record);
+        }
+        
         function resetGame() {
             document.getElementById('userDice').innerText = '';
             document.getElementById('robotDice1').innerText = '';
