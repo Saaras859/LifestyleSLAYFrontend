@@ -63,6 +63,23 @@
         .roll-animation {
             animation: roll 0.5s;
         }
+        .result-table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        .result-table th, .result-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .result-table th {
+            background-color: #5CB85C;
+            color: white;
+            text-align: center;
+        }
+        .result-table td {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -73,7 +90,6 @@
             <button onclick="rerollUserDice()" id="rerollButton" disabled>Reroll Your Dice</button>
             <button onclick="revealDice()" id="revealButton" disabled>Reveal Dice</button>
             <button onclick="resetGame()" id="resetButton" style="display:none;">Reset Game</button>
-            <button onclick="showGameRecord()">Stats</button>
         </div>
         <div class="dice-container">
             <p>User's Dice: <span id="userDice" class="dice"></span></p>
@@ -81,31 +97,49 @@
         </div>
         <div id="result"></div>
     </div>
+    <div class="container">
+        <label for="options">Sort by:</label>
+        <select id="options">
+            <option value="0">Win Status</option>
+            <option value="1">Dice 1 Value</option>
+            <option value="2">Dice 2 Value</option>
+            <option value="3">Re-roll Dice 1 Value</option>
+            <option value="4">Re-roll Dice 2 Value</option>
+            <option value="5">Robot Dice 1 Value</option>
+            <option value="6">Robot Dice 2 Value</option>
+        </select>
+        <button onclick="formatSort()">Sort and Display</button>
+        <div id="result-box"></div>
+    </div>
     <script>
         let userDice = [];
         let robotDice = [];
-        let game_record = []
-        let cur_game = [0,[0,0],[0,0],[0,0]]
+        let game_record = [];
+        let cur_game = [0, [0, 0], [0, 0], [0, 0]];
         const diceUnicode = ['\u2680', '\u2681', '\u2682', '\u2683', '\u2684', '\u2685'];
+
         function rollDie() {
             return Math.floor(Math.random() * 6) + 1;
         }
+
         function displayDice(diceArray) {
             return diceArray.map(die => diceUnicode[die - 1]).join(' ');
         }
+
         function animateDice(elementId) {
             const element = document.getElementById(elementId);
             element.classList.remove('roll-animation');
             void element.offsetWidth;  // Trigger reflow to restart animation
             element.classList.add('roll-animation');
         }
+
         function startGame() {
             userDice = [rollDie(), rollDie()];
             robotDice = [rollDie(), rollDie()];
-            cur_game[1] = userDice
+            cur_game[1] = userDice;
             animateDice('userDice');
             animateDice('robotDice1');
-            cur_game[3] = robotDice
+            cur_game[3] = robotDice;
             setTimeout(() => {
                 document.getElementById('userDice').innerText = displayDice(userDice);
                 document.getElementById('robotDice1').innerText = diceUnicode[robotDice[0] - 1];
@@ -119,9 +153,10 @@
                 document.getElementById('rerollButton').style.backgroundColor = '#5CB85C';
             }, 500);
         }
+
         function rerollUserDice() {
             userDice = [rollDie(), rollDie()];
-            cur_game[2] = userDice
+            cur_game[2] = userDice;
             animateDice('userDice');
             setTimeout(() => {
                 document.getElementById('userDice').innerText = displayDice(userDice);
@@ -129,19 +164,20 @@
                 document.getElementById('rerollButton').style.backgroundColor = '#ddd';
             }, 500);
         }
+
         function revealDice() {
             const userTotal = userDice[0] + userDice[1];
             const robotTotal = robotDice[0] + robotDice[1];
             let resultMessage;
             if (userTotal > robotTotal) {
                 resultMessage = `You win! (${userTotal} vs ${robotTotal})`;
-                cur_game[0] = 1
+                cur_game[0] = 1;
             } else if (userTotal < robotTotal) {
                 resultMessage = `Robot wins! (${robotTotal} vs ${userTotal})`;
-                cur_game[0] = -1
+                cur_game[0] = -1;
             } else {
                 resultMessage = `It's a tie! (${userTotal} vs ${robotTotal})`;
-                cur_game[0] = 0
+                cur_game[0] = 0;
             }
             animateDice('robotDice2');
             setTimeout(() => {
@@ -153,112 +189,7 @@
                 document.getElementById('resetButton').style.display = 'inline-block';
             }, 500);
         }
-        function resetGame() {
-            document.getElementById('userDice').innerText = '';
-            document.getElementById('robotDice1').innerText = '';
-            document.getElementById('robotDice2').innerText = '?';
-            document.getElementById('result').innerText = '';
-            document.getElementById('startButton').disabled = false;
-            document.getElementById('startButton').innerText = 'Roll Dice';
-            document.getElementById('rerollButton').disabled = true;
-            document.getElementById('rerollButton').style.backgroundColor = '#ddd';
-            document.getElementById('revealButton').disabled = true;
-            document.getElementById('revealButton').style.backgroundColor = '#ddd';
-            document.getElementById('startButton').style.backgroundColor = '#5CB85C';
-            document.getElementById('resetButton').style.display = 'none';
-            game_record.push(cur_game)
-            console.log(game_record)
-            cur_game = [0,[0,0],[0,0],[0,0]]
-        }
-        function displayGameRecordOnPage() {
-            // Remove previous game record if exists
-            const existingRecordContainer = document.querySelector('.record-container');
-            if (existingRecordContainer) {
-                existingRecordContainer.remove();
-            }
-        
-            // Create a new container for the game record
-            const recordContainer = document.createElement('div');
-            recordContainer.classList.add('record-container');
-        
-            // Create a heading for the game record
-            const recordHeading = document.createElement('h2');
-            recordHeading.textContent = 'Game Record';
-            recordContainer.appendChild(recordHeading);
-        
-            // Create a list for the game record items
-            const recordList = document.createElement('ul');
-            recordList.style.listStyleType = 'none'; // Remove bullet points
-        
-            // Add game record items
-            const totalUserWins = game_record.reduce((totalWins, game) => totalWins + (game[0] === 1 ? 1 : 0), 0);
-            const totalUserLosses = game_record.reduce((totalLosses, game) => totalLosses + (game[0] === -1 ? 1 : 0), 0);
-            const totalTies = game_record.reduce((totalTies, game) => totalTies + (game[0] === 0 ? 1 : 0), 0);
-        
-            const recordItems = [
-                `Total user wins: ${totalUserWins}`,
-                `Total user losses: ${totalUserLosses}`,
-                `Total ties: ${totalTies}`
-            ];
-        
-            // Add highest and lowest numbers for user and robot
-            const highestUserNumber = Math.max(...game_record.map(game => Math.max(...game[1])));
-            const lowestUserNumber = Math.min(...game_record.map(game => Math.min(...game[1])));
-            const highestRobotNumber = Math.max(...game_record.map(game => Math.max(...game[3])));
-            const lowestRobotNumber = Math.min(...game_record.map(game => Math.min(...game[3])));
-        
-            recordItems.push(`Highest number for user: ${highestUserNumber}`);
-            recordItems.push(`Lowest number for user: ${lowestUserNumber}`);
-            recordItems.push(`Highest number for robot: ${highestRobotNumber}`);
-            recordItems.push(`Lowest number for robot: ${lowestRobotNumber}`);
-        
-            recordItems.forEach(itemText => {
-                const listItem = document.createElement('li');
-                listItem.textContent = itemText;
-                recordList.appendChild(listItem);
-            });
-        
-            recordContainer.appendChild(recordList);
-        
-            // Append the game record container to the body
-            document.body.appendChild(recordContainer);
-        
-            // Add a button to toggle the game record visibility
-            const toggleButton = document.createElement('button');
-            toggleButton.textContent = 'Hide Game Record';
-            toggleButton.onclick = toggleGameRecordVisibility;
-            recordContainer.appendChild(toggleButton);
-        }
-        
-        function toggleGameRecordVisibility() {
-            const recordContainer = document.querySelector('.record-container');
-            const toggleButton = recordContainer.querySelector('button');
-        
-            if (recordContainer.style.display === 'none') {
-                recordContainer.style.display = 'block';
-                toggleButton.textContent = 'Hide Game Record';
-            } else {
-                recordContainer.style.display = 'none';
-                toggleButton.textContent = 'Show Game Record';
-            }
-        }
-        
-        function showGameRecord() {
-            // Display the game record on the webpage
-            displayGameRecordOnPage();
-        
-            // Log the game record in the console
-            console.log("Game Record:", game_record);
-        }
-        
-        function showGameRecord() {
-            // Display the game record on the webpage
-            displayGameRecordOnPage();
-        
-            // Log the game record in the console
-            console.log("Game Record:", game_record);
-        }
-        
+
         function resetGame() {
             document.getElementById('userDice').innerText = '';
             document.getElementById('robotDice1').innerText = '';
@@ -275,9 +206,10 @@
             game_record.push(cur_game);
             console.log("Game Record after Reset:", game_record); // Show array after reset
             cur_game = [0, [0, 0], [0, 0], [0, 0]];
-        }        
-        
-        function quicksort(arr) {
+        }
+
+
+        function quicksort(arr, key) {
             if (arr.length <= 1) {
                 return arr;
             } else {
@@ -286,23 +218,86 @@
                 const middle = [];
                 const right = [];
                 for (const element of arr) {
-                    if (element < pivot) {
+                    if (element[key] < pivot[key]) {
                         left.push(element);
-                    } else if (element === pivot) {
+                    } else if (element[key] === pivot[key]) {
                         middle.push(element);
                     } else {
                         right.push(element);
                     }
                 }
-                return quicksort(left).concat(middle.concat(quicksort(right)));
+                return quicksort(left, key).concat(middle.concat(quicksort(right, key)));
             }
         }
-        // Example usage
-        const arr = [3, 1, 12, 21, 2111, 6, 8, 10, 1, 2, 1];
-        console.log("Original array:", arr);
-        const sortedArr = quicksort(arr);
-        console.log("Sorted array:", sortedArr);
+
+        function formatSort() {
+            const select = document.getElementById("options");
+            const resultBox = document.getElementById("result-box");
+            const selectedIndex = parseInt(select.options[select.selectedIndex].value);
+            let key;
+
+            switch (selectedIndex) {
+                case 0:
+                    key = 0;
+                    break;
+                case 1:
+                    key = [1, 0];
+                    break;
+                case 2:
+                    key = [1, 1];
+                    break;
+                case 3:
+                    key = [2, 0];
+                    break;
+                case 4:
+                    key = [2, 1];
+                    break;
+                case 5:
+                    key = [3, 0];
+                    break;
+                case 6:
+                    key = [3, 1];
+                    break;
+            }
+
+            const sortedRecord = quicksort(game_record, key);
+            displaySortedRecord(sortedRecord);
+        }
+
+        function displaySortedRecord(sortedRecord) {
+            const resultBox = document.getElementById("result-box");
+            resultBox.innerHTML = '';  // Clear previous results
+
+            const table = document.createElement('table');
+            table.className = 'result-table';
+
+            const headerRow = document.createElement('tr');
+            const headers = ['Result', 'User Dice 1', 'User Dice 2', 'Reroll Dice 1', 'Reroll Dice 2', 'Robot Dice 1', 'Robot Dice 2'];
+            headers.forEach(headerText => {
+                const headerCell = document.createElement('th');
+                headerCell.textContent = headerText;
+                headerRow.appendChild(headerCell);
+            });
+            table.appendChild(headerRow);
+
+            sortedRecord.forEach(game => {
+                const row = document.createElement('tr');
+                const rowData = [
+                    game[0] === 1 ? 'Win' : game[0] === -1 ? 'Loss' : 'Tie',
+                    game[1][0], game[1][1],
+                    game[2][0], game[2][1],
+                    game[3][0], game[3][1]
+                ];
+                rowData.forEach(data => {
+                    const cell = document.createElement('td');
+                    cell.textContent = data;
+                    row.appendChild(cell);
+                });
+                table.appendChild(row);
+            });
+
+            resultBox.appendChild(table);
+        }
     </script>
 </body>
 </html>
-
