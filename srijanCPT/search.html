@@ -74,7 +74,7 @@ search_exclude: true
             }
         }
         function getPublic() {
-            fetch('http://127.0.0.1:8086/api/users/search')
+            fetch('http://127.0.0.1:8086/api/buttonify/search')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -103,7 +103,7 @@ search_exclude: true
                 },
                 method: 'PUT', // Override the method property
             };
-            fetch('http://127.0.0.1:8086/api/users/search', authOptions)
+            fetch('http://127.0.0.1:8086/api/buttonify/search', authOptions)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -160,7 +160,7 @@ search_exclude: true
                     name: name,
                 }
             }
-            const url ='http://127.0.0.1:8086/api/users/design';
+            const url ='http://127.0.0.1:8086/api/buttonify/design';
             const authOptions = {
                 mode: 'cors', // no-cors, *cors, same-origin
                 credentials: 'include', // include, same-origin, omit
@@ -202,7 +202,7 @@ search_exclude: true
                     name: name,
                 }
             }
-            const url ='http://127.0.0.1:8086/api/users/design';
+            const url ='http://127.0.0.1:8086/api/buttonify/design';
             const authOptions = {
                 mode: 'cors', // no-cors, *cors, same-origin
                 credentials: 'include', // include, same-origin, omit

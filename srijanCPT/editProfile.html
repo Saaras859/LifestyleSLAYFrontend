@@ -54,7 +54,7 @@ search_exclude: true
 
 <script>
 function sendData(type) {
-    const url ='http://127.0.0.1:8086/api/users/';
+    const url ='http://127.0.0.1:8086/api/buttonify/';
 
     // Set the body of the request to include login data from the DOM
     const body = {
@@ -111,7 +111,7 @@ function sendData(type) {
                 // console.log(reader.result);
                 base64String = reader.result; // convergin to base 64
                 // console.log(base64String);
-                const url = 'http://127.0.0.1:8086/api/users/images';
+                const url = 'http://127.0.0.1:8086/api/buttonify/images';
                 const body = {
                     
                     Image: base64String
@@ -159,7 +159,7 @@ function sendData(type) {
 
     }
     function getimage(){
-        const url = 'http://127.0.0.1:8086/api/users/images';
+        const url = 'http://127.0.0.1:8086/api/buttonify/images';
         const AuthOptions = {
                     mode: 'cors', // no-cors, *cors, same-origin
                     credentials: 'include', // include, same-origin, omit

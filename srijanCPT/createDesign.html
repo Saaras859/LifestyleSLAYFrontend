@@ -295,7 +295,7 @@ search_exclude: true
             // Initial canvas setup
             resizeCanvas();
         });
-    const url ='http://127.0.0.1:8086/api/users/design';
+    const url ='http://127.0.0.1:8086/api/buttonify/design';
     // Function to display the popup
     function openPopup() {
         document.getElementById("popup").style.display = "block";
@@ -312,8 +312,7 @@ search_exclude: true
             type: publicInput1,
             description: description
         }
-        console.log(name1)
-        console.log(description)
+        console.log(JSON.stringify(body))
         if (name1.trim() !== "") {
             const authOptions = {
                 mode: 'cors', // no-cors, *cors, same-origin
@@ -329,8 +328,9 @@ search_exclude: true
             fetch(url, authOptions)
             .then(response => {
                 // handle error response from Web API
+                print("hi")
                 if (!response.ok) {
-                    window.location.href = "http://127.0.0.1:4100/teacher-portolio/buttonify/login";
+                    window.location.href = "http://127.0.0.1:4100/teacher_portfolio/buttonify/login";
                 }
                 document.getElementById("popup").style.display = "none";
             })
@@ -400,7 +400,7 @@ search_exclude: true
     borderWidthSlider.addEventListener('input', updateButtonPreview);
 
     function saveButton(name) { 
-        const url ='http://127.0.0.1:8086/api/users/design';
+        const url ='http://127.0.0.1:8086/api/buttonify/design';
         const body = {
             name: name,
             content: buttonCode.value,
