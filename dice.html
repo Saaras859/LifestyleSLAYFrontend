@@ -7,209 +7,226 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-            background-color: #F4F4F9;
+            background-color: #f0f0f0;
             color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 0;
         }
-        button {
+        h1 {
+            margin-top: 20px;
+        }
+        .button {
             padding: 10px 20px;
             margin: 10px;
             font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
             border: none;
             border-radius: 5px;
-            background-color: #5CB85C;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
         }
-        button:hover {
-            background-color: #4CAE4C;
-        }
-        button:active {
-            background-color: grey;
-        }
-        button:disabled {
-            background-color: #ddd;
+        .button:disabled {
+            background-color: #cccccc;
             cursor: not-allowed;
         }
-        .dice {
-            font-size: 48px;
-            margin: 20px;
-            display: inline-block;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .hidden {
+            display: none;
         }
-        .container {
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 80%;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            cursor: pointer;
+        }
+        .dice-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
-        }
-        .dice-container {
             margin: 20px;
         }
-        #result {
+        .dice {
+            width: 50px;
+            height: 50px;
+            margin: 10px;
+            background-color: white;
+            border: 2px solid #333;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-size: 24px;
-            margin-top: 20px;
             font-weight: bold;
+            position: relative;
+        }
+        .player-dice {
+            background-color: #4CAF50;
+        }
+        .robot-dice {
+            background-color: #FF6347;
+        }
+        .animation {
+            animation: roll 0.5s ease-out;
         }
         @keyframes roll {
-            0% { transform: rotate(0deg); }
+            0% { transform: rotate(0); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
             100% { transform: rotate(360deg); }
-        }
-        .roll-animation {
-            animation: roll 0.5s;
-        }
-        .result-table {
-            width: 80%;
-            margin: 20px auto;
-            border-collapse: collapse;
-        }
-        .result-table th, .result-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-        .result-table th {
-            background-color: #5CB85C;
-            color: white;
-            text-align: center;
-        }
-        .result-table td {
-            text-align: center;
         }
     </style>
 </head>
 <body>
     <h1>Dice Game</h1>
-    <div class="container">
-        <div>
-            <button onclick="startGame()" id="startButton">Roll Dice</button>
-            <button onclick="rerollUserDice()" id="rerollButton" disabled>Reroll Your Dice</button>
-            <button onclick="revealDice()" id="revealButton" disabled>Reveal Dice</button>
-            <button onclick="resetGame()" id="resetButton" style="display:none;">Reset Game</button>
-        </div>
-        <div class="dice-container">
-            <p>User's Dice: <span id="userDice" class="dice"></span></p>
-            <p>Robot's Dice: <span id="robotDice1" class="dice"></span> <span id="robotDice2" class="dice">?</span></p>
-        </div>
-        <div id="result"></div>
+    <div>
+        <button id="rollButton" class="button" onclick="playDice()">Roll</button>
+        <button id="rerollButton" class="button" onclick="rerollDice()" disabled>Reroll</button>
+        <button id="revealButton" class="button" onclick="revealDice()" disabled>Reveal</button>
+        <button id="resetButton" class="button" onclick="resetGame()" disabled>Reset</button>
+        <button id="gameRecordButton" class="button hidden" onclick="toggleGameRecords()">Show Game Record</button>
+        <button id="statsButton" class="button" onclick="toggleStats()">Show Stats</button>
     </div>
-    <div class="container">
-        <label for="options">Sort by:</label>
-        <select id="options">
-            <option value="0">Win Status</option>
-            <option value="1">Dice 1 Value</option>
-            <option value="2">Dice 2 Value</option>
-            <option value="3">Re-roll Dice 1 Value</option>
-            <option value="4">Re-roll Dice 2 Value</option>
-            <option value="5">Robot Dice 1 Value</option>
-            <option value="6">Robot Dice 2 Value</option>
-        </select>
-        <button onclick="formatSort()">Sort and Display</button>
-        <div id="result-box"></div>
+    <div id="gameStatus"></div>
+    <div class="dice-container">
+        <div id="userDice1" class="dice player-dice"></div>
+        <div id="userDice2" class="dice player-dice"></div>
+        <div id="robotDice1" class="dice robot-dice"></div>
+        <div id="robotDice2" class="dice robot-dice hidden"></div>
     </div>
-    <script>
-        let userDice = [];
-        let robotDice = [];
-        let game_record = [];
-        let cur_game = [0, [0, 0], [0, 0], [0, 0]];
-        const diceUnicode = ['\u2680', '\u2681', '\u2682', '\u2683', '\u2684', '\u2685'];
+    <table id="gameTable" class="hidden">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Game #</th>
+                <th onclick="sortTable(1)">Result</th>
+                <th onclick="sortTable(2)">Total Sum</th>
+                <th onclick="sortTable(3)">Sum of First Roll</th>
+                <th onclick="sortTable(4)">Sum of Second Roll</th>
+                <th onclick="sortTable(5)">Robot Sum</th>
+            </tr>
+        </thead>
+        <tbody id="gameTableBody">
+        </tbody>
+    </table>
+    <div id="stats" class="hidden"></div>
 
-        function rollDie() {
+    <script>
+        let gameHistory = [];
+        let gameCount = 0;
+        let userRoll1, userRoll2, userFirstRoll, userSecondRoll, robotRoll1, robotRoll2, userSum;
+
+        function rollDice() {
             return Math.floor(Math.random() * 6) + 1;
         }
 
-        function displayDice(diceArray) {
-            return diceArray.map(die => diceUnicode[die - 1]).join(' ');
-        }
-
-        function animateDice(elementId) {
-            const element = document.getElementById(elementId);
-            element.classList.remove('roll-animation');
-            void element.offsetWidth;  // Trigger reflow to restart animation
-            element.classList.add('roll-animation');
-        }
-
-        function startGame() {
-            userDice = [rollDie(), rollDie()];
-            robotDice = [rollDie(), rollDie()];
-            cur_game[1] = userDice;
-            animateDice('userDice');
-            animateDice('robotDice1');
-            cur_game[3] = robotDice;
+        function showDice(diceElement, value) {
+            diceElement.classList.add('animation');
             setTimeout(() => {
-                document.getElementById('userDice').innerText = displayDice(userDice);
-                document.getElementById('robotDice1').innerText = diceUnicode[robotDice[0] - 1];
-                document.getElementById('robotDice2').innerText = '?';
-                document.getElementById('rerollButton').disabled = false;
-                document.getElementById('revealButton').disabled = false;
-                document.getElementById('result').innerText = '';
-                document.getElementById('startButton').disabled = true;
-                document.getElementById('startButton').style.backgroundColor = '#ddd';
-                document.getElementById('revealButton').style.backgroundColor = '#5CB85C';
-                document.getElementById('rerollButton').style.backgroundColor = '#5CB85C';
+                diceElement.classList.remove('animation');
+                diceElement.textContent = value;
             }, 500);
         }
 
-        function rerollUserDice() {
-            userDice = [rollDie(), rollDie()];
-            cur_game[2] = userDice;
-            animateDice('userDice');
-            setTimeout(() => {
-                document.getElementById('userDice').innerText = displayDice(userDice);
-                document.getElementById('rerollButton').disabled = true;
-                document.getElementById('rerollButton').style.backgroundColor = '#ddd';
-            }, 500);
+        function playDice() {
+            userRoll1 = rollDice();
+            userRoll2 = rollDice();
+            userFirstRoll = userRoll1 + userRoll2;
+            robotRoll1 = rollDice();
+            robotRoll2 = rollDice();
+
+            showDice(document.getElementById('userDice1'), userRoll1);
+            showDice(document.getElementById('userDice2'), userRoll2);
+            showDice(document.getElementById('robotDice1'), robotRoll1);
+
+            document.getElementById('rollButton').disabled = true;
+            document.getElementById('rerollButton').disabled = false;
+            document.getElementById('revealButton').disabled = false;
+            document.getElementById('resetButton').disabled = false;
+        }
+
+        function rerollDice() {
+            userRoll1 = rollDice();
+            userRoll2 = rollDice();
+            userSecondRoll = userRoll1 + userRoll2;
+
+            showDice(document.getElementById('userDice1'), userRoll1);
+            showDice(document.getElementById('userDice2'), userRoll2);
+
+            document.getElementById('rerollButton').disabled = true;
         }
 
         function revealDice() {
-            const userTotal = userDice[0] + userDice[1];
-            const robotTotal = robotDice[0] + robotDice[1];
-            let resultMessage;
-            if (userTotal > robotTotal) {
-                resultMessage = `You win! (${userTotal} vs ${robotTotal})`;
-                cur_game[0] = 1;
-            } else if (userTotal < robotTotal) {
-                resultMessage = `Robot wins! (${robotTotal} vs ${userTotal})`;
-                cur_game[0] = -1;
-            } else {
-                resultMessage = `It's a tie! (${userTotal} vs ${robotTotal})`;
-                cur_game[0] = 0;
+            document.getElementById('robotDice2').classList.remove('hidden');
+            showDice(document.getElementById('robotDice2'), robotRoll2);
+
+            userSum = userSecondRoll || userFirstRoll;
+            let robotSum = robotRoll1 + robotRoll2;
+            let result = userSum > robotSum ? 'Win' : (userSum < robotSum ? 'Loss' : 'Tie');
+            
+            gameHistory.push([result, userSum, userFirstRoll, userSecondRoll || 0, robotSum]);
+            gameCount++;
+
+            document.getElementById('gameStatus').innerText = `Game ${gameCount}: You ${result}! Your sum: ${userSum}, Robot sum: ${robotSum}`;
+            document.getElementById('revealButton').disabled = true;
+
+            if (gameCount >= 4) {
+                document.getElementById('gameRecordButton').classList.remove('hidden');
             }
-            animateDice('robotDice2');
-            setTimeout(() => {
-                document.getElementById('robotDice2').innerText = diceUnicode[robotDice[1] - 1];
-                document.getElementById('result').innerText = resultMessage;
-                document.getElementById('rerollButton').disabled = true;
-                document.getElementById('revealButton').disabled = true;
-                document.getElementById('revealButton').style.backgroundColor = '#ddd';
-                document.getElementById('resetButton').style.display = 'inline-block';
-            }, 500);
         }
 
         function resetGame() {
-            document.getElementById('userDice').innerText = '';
-            document.getElementById('robotDice1').innerText = '';
-            document.getElementById('robotDice2').innerText = '?';
-            document.getElementById('result').innerText = '';
-            document.getElementById('startButton').disabled = false;
-            document.getElementById('startButton').innerText = 'Roll Dice';
+            document.getElementById('userDice1').textContent = '';
+            document.getElementById('userDice2').textContent = '';
+            document.getElementById('robotDice1').textContent = '';
+            document.getElementById('robotDice2').textContent = '';
+            document.getElementById('robotDice2').classList.add('hidden');
+            document.getElementById('gameStatus').innerText = '';
+
+            document.getElementById('rollButton').disabled = false;
             document.getElementById('rerollButton').disabled = true;
-            document.getElementById('rerollButton').style.backgroundColor = '#ddd';
             document.getElementById('revealButton').disabled = true;
-            document.getElementById('revealButton').style.backgroundColor = '#ddd';
-            document.getElementById('startButton').style.backgroundColor = '#5CB85C';
-            document.getElementById('resetButton').style.display = 'none';
-            game_record.push(cur_game);
-            console.log("Game Record after Reset:", game_record); // Show array after reset
-            cur_game = [0, [0, 0], [0, 0], [0, 0]];
+            document.getElementById('resetButton').disabled = true;
         }
 
+        function displayGameRecords() {
+            let table = document.getElementById('gameTable');
+            table.classList.remove('hidden');
+            let tbody = document.getElementById('gameTableBody');
+            tbody.innerHTML = '';
+            gameHistory.forEach((game, index) => {
+                let row = `<tr>
+                    <td>${index + 1}</td>
+                    <td>${game[0]}</td>
+                    <td>${game[1]}</td>
+                    <td>${game[2]}</td>
+                    <td>${game[3]}</td>
+                    <td>${game[4]}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
 
-        function quicksort(arr, key) {
+        function displayStats() {
+            let statsDiv = document.getElementById('stats');
+            statsDiv.classList.remove('hidden');
+            let wins = gameHistory.filter(game => game[0] === 'Win').length;
+            let losses = gameHistory.filter(game => game[0] === 'Loss').length;
+            let ties = gameHistory.filter(game => game[0] === 'Tie').length;
+            let highestRoll = Math.max(...gameHistory.map(game => game[1]));
+            let lowestRoll = Math.min(...gameHistory.map(game => game[1]));
+            statsDiv.innerHTML = `Wins: ${wins}, Losses: ${losses}, Ties: ${ties}, Highest Roll: ${highestRoll}, Lowest Roll: ${lowestRoll}`;
+        }
+        function quicksort(arr) {
             if (arr.length <= 1) {
                 return arr;
             } else {
@@ -218,85 +235,53 @@
                 const middle = [];
                 const right = [];
                 for (const element of arr) {
-                    if (element[key] < pivot[key]) {
+                    if (element < pivot) {
                         left.push(element);
-                    } else if (element[key] === pivot[key]) {
+                    } else if (element === pivot) {
                         middle.push(element);
                     } else {
                         right.push(element);
                     }
                 }
-                return quicksort(left, key).concat(middle.concat(quicksort(right, key)));
+                return quicksort(left).concat(middle.concat(quicksort(right)));
             }
         }
 
-        function formatSort() {
-            const select = document.getElementById("options");
-            const resultBox = document.getElementById("result-box");
-            const selectedIndex = parseInt(select.options[select.selectedIndex].value);
-            let key;
-
-            switch (selectedIndex) {
-                case 0:
-                    key = 0;
-                    break;
-                case 1:
-                    key = [1, 0];
-                    break;
-                case 2:
-                    key = [1, 1];
-                    break;
-                case 3:
-                    key = [2, 0];
-                    break;
-                case 4:
-                    key = [2, 1];
-                    break;
-                case 5:
-                    key = [3, 0];
-                    break;
-                case 6:
-                    key = [3, 1];
-                    break;
-            }
-
-            const sortedRecord = quicksort(game_record, key);
-            displaySortedRecord(sortedRecord);
+        function sortTable(columnIndex) {
+            let table = document.getElementById('gameTable');
+            let rows = Array.from(table.rows).slice(1);
+            let sortedRows = rows.sort((a, b) => {
+                let aText = a.cells[columnIndex].innerText;
+                let bText = b.cells[columnIndex].innerText;
+                return isNaN(aText) ? aText.localeCompare(bText) : aText - bText;
+            });
+            let tbody = table.tBodies[0];
+            tbody.innerHTML = '';
+            sortedRows.forEach(row => tbody.appendChild(row));
         }
 
-        function displaySortedRecord(sortedRecord) {
-            const resultBox = document.getElementById("result-box");
-            resultBox.innerHTML = '';  // Clear previous results
+        function toggleGameRecords() {
+            let table = document.getElementById('gameTable');
+            if (table.classList.contains('hidden')) {
+                displayGameRecords();
+                table.classList.remove('hidden');
+                document.getElementById('gameRecordButton').innerText = 'Hide Game Record';
+            } else {
+                table.classList.add('hidden');
+                document.getElementById('gameRecordButton').innerText = 'Show Game Record';
+            }
+        }
 
-            const table = document.createElement('table');
-            table.className = 'result-table';
-
-            const headerRow = document.createElement('tr');
-            const headers = ['Result', 'User Dice 1', 'User Dice 2', 'Reroll Dice 1', 'Reroll Dice 2', 'Robot Dice 1', 'Robot Dice 2'];
-            headers.forEach(headerText => {
-                const headerCell = document.createElement('th');
-                headerCell.textContent = headerText;
-                headerRow.appendChild(headerCell);
-            });
-            table.appendChild(headerRow);
-
-            sortedRecord.forEach(game => {
-                const row = document.createElement('tr');
-                const rowData = [
-                    game[0] === 1 ? 'Win' : game[0] === -1 ? 'Loss' : 'Tie',
-                    game[1][0], game[1][1],
-                    game[2][0], game[2][1],
-                    game[3][0], game[3][1]
-                ];
-                rowData.forEach(data => {
-                    const cell = document.createElement('td');
-                    cell.textContent = data;
-                    row.appendChild(cell);
-                });
-                table.appendChild(row);
-            });
-
-            resultBox.appendChild(table);
+        function toggleStats() {
+            let statsDiv = document.getElementById('stats');
+            if (statsDiv.classList.contains('hidden')) {
+                displayStats();
+                statsDiv.classList.remove('hidden');
+                document.getElementById('statsButton').innerText = 'Hide Stats';
+            } else {
+                statsDiv.classList.add('hidden');
+                document.getElementById('statsButton').innerText = 'Show Stats';
+            }
         }
     </script>
 </body>
